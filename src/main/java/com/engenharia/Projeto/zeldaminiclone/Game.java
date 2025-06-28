@@ -5,19 +5,23 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import javax.swing.JFrame;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 
-public class Game extends Canvas implements Runnable {
+public class Game extends Canvas implements Runnable, KeyListener {
     private JFrame frame;
     public static final int WIDTH = 240;
     public static final int HEIGHT = 160;
     public static final int SCALE = 3;
     private Thread thread;
     private boolean isRunning = true;
-
+    private Player player;
     public Game() {
         setPreferredSize(new java.awt.Dimension(WIDTH * SCALE, HEIGHT * SCALE));
         initFrame();
+        addKeyListener(this);
         start();
+        player = new Player(32, 32);
 
     }
 
@@ -46,7 +50,7 @@ public class Game extends Canvas implements Runnable {
     }
 
     public void tick() {
-        // Lógica de atualização (ex: movimentar o jogador)
+        player.tick();
     }
 
     public void render() {
@@ -59,6 +63,7 @@ public class Game extends Canvas implements Runnable {
         g.setColor(Color.black);
         g.fillRect(0, 0, WIDTH * SCALE, HEIGHT * SCALE);
         // Aqui desenharemos os objetos no futuro
+        player.render(g);
         g.dispose();
         bs.show();
     }
@@ -74,6 +79,29 @@ public class Game extends Canvas implements Runnable {
             }
         }
         stop();
+    }
+    public void keyTyped(KeyEvent e) {}
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_D) {
+            player.right = true;
+        } else if (e.getKeyCode() == KeyEvent.VK_A) {
+            player.left = true;
+        } else if (e.getKeyCode() == KeyEvent.VK_W) {
+            player.up = true;
+        } else if (e.getKeyCode() == KeyEvent.VK_S) {
+            player.down = true;
+        }
+    }
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_D) {
+            player.right = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_A) {
+            player.left = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_W) {
+            player.up = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_S) {
+            player.down = false;
+        }
     }
 
 
