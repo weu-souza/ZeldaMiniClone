@@ -15,13 +15,17 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public static final int SCALE = 3;
     private Thread thread;
     private boolean isRunning = true;
-    private Player player;
+
+    private World world;
+    public static Player player;
+
     public Game() {
         setPreferredSize(new java.awt.Dimension(WIDTH * SCALE, HEIGHT * SCALE));
         initFrame();
         addKeyListener(this);
+        player = new Player(0, 0); // A posição será atualizada pelo World
+        world = new World("map.png"); // nome da imagem na pasta resources
         start();
-        player = new Player(32, 32);
 
     }
 
@@ -63,6 +67,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         g.setColor(Color.black);
         g.fillRect(0, 0, WIDTH * SCALE, HEIGHT * SCALE);
         // Aqui desenharemos os objetos no futuro
+        world.render(g);
         player.render(g);
         g.dispose();
         bs.show();
