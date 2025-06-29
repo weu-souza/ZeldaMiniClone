@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
+import com.engenharia.Projeto.zeldaminiclone.creatures.Npc;
+import java.util.List;
 
 public class World {
     public static ArrayList<Blocks> blocks = new ArrayList<>();
@@ -70,14 +72,29 @@ public class World {
     public static boolean isFree(int xnext, int ynext) {
         Rectangle futurePlayer = new Rectangle(xnext, ynext, 16, 16);
 
-        for (int i = 0; i < blocks.size(); i++) {
-            Blocks bloco = blocks.get(i);
-            if (bloco.type == 0 && futurePlayer.intersects(bloco)) { // verifica apenas colisão com paredes
-                return false;
-            } else if (bloco.type == 3 && futurePlayer.intersects(bloco)) { // verifica apenas colisão com paredes
+        // Verifica colisão com blocos (paredes e grama)
+        for (Blocks bloco : blocks) {
+            if ((bloco.type == 0 || bloco.type == 3) && futurePlayer.intersects(bloco)) {
                 return false;
             }
         }
-        return true;
+
+        // Verifica colisão com NPC
+        Rectangle npcBounds = new Rectangle(Game.npc.x, Game.npc.y, 16, 16);
+        if (futurePlayer.intersects(npcBounds)) {
+            return false;
+        }
+
+        // Verifica colisão com inimigos
+        for (Enemies enemy : Game.enemies) {
+            Rectangle enemyBounds = new Rectangle(enemy.x, enemy.y, 16, 16);
+            if (futurePlayer.intersects(enemyBounds)) {
+                return false;
+            }
+        }
+
+        return true; // Nenhuma colisão detectada
     }
+
+
 }

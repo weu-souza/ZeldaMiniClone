@@ -13,10 +13,12 @@ import java.awt.image.BufferStrategy;
 import javax.swing.JFrame;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Game extends Canvas implements Runnable, KeyListener {
+
     private JFrame frame;
     public static final int WIDTH = 340;
     public static final int HEIGHT = 220;
@@ -29,6 +31,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public static Player player;
     public static Npc npc;
     public static List<Enemies> enemies = new ArrayList<>();
+    private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+
 
     public Game() {
         setPreferredSize(new java.awt.Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -52,6 +56,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
+
 
     public synchronized void start() {
         thread = new Thread(this);
@@ -81,10 +86,13 @@ public class Game extends Canvas implements Runnable, KeyListener {
             this.createBufferStrategy(3);
             return;
         }
-        Graphics g = bs.getDrawGraphics();
+
+        // Desenhar no buffer (tela base)
+        Graphics g = image.getGraphics();
         g.setColor(Color.black);
-        g.fillRect(0, 0, WIDTH * SCALE, HEIGHT * SCALE);
-        // Aqui desenharemos os objetos no futuro
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // Renderizar todos os elementos no buffer SEM escala
         world.render(g);
         player.render(g);
         npc.render(g);
@@ -92,6 +100,11 @@ public class Game extends Canvas implements Runnable, KeyListener {
             enemy.render(g);
         }
         g.dispose();
+
+        // Agora desenhar o buffer com escala na tela real
+        Graphics gFinal = bs.getDrawGraphics();
+        gFinal.drawImage(image, 0, 0, WIDTH * SCALE, HEIGHT * SCALE, null);
+        gFinal.dispose();
         bs.show();
     }
 
@@ -120,6 +133,10 @@ public class Game extends Canvas implements Runnable, KeyListener {
             player.up = true;
         } else if (e.getKeyCode() == KeyEvent.VK_S) {
             player.down = true;
+        } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (!player.isAttacking()) { // Crie esse método no player para acessar o atributo privado
+                player.startAttack(); // Também crie esse método para iniciar o ataque
+            }
         }
     }
 

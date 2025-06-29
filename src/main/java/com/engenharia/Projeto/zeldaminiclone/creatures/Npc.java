@@ -5,6 +5,8 @@ import com.engenharia.Projeto.zeldaminiclone.player.SpriteSheet;
 
 import java.awt.image.BufferedImage;
 
+import static com.engenharia.Projeto.zeldaminiclone.player.SpriteSheet.resize;
+
 public class Npc {
     // Exemplo básico de inimigo baseado na estrutura do Player
     public int x, y, width, height, speed;
@@ -16,8 +18,9 @@ public class Npc {
         this.width = 16;
         this.height = 16;
         this.speed = 1;
-        SpriteSheet sheet = new SpriteSheet("Npc/penguin_cap.png");
-        this.sprite = sheet.getSprite(0, 0, 16, 16);
+        SpriteSheet sheet = new SpriteSheet("Npc/Npc.png");
+
+        this.sprite =  resize(sheet.getSprite(0, 0, 700, 700), 16, 16);;
     }
 
     public void tick() {
