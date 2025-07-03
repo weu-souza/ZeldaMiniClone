@@ -54,6 +54,9 @@ public class World {
                         blocks.add(new Blocks(x * 16, y * 16, 2));
                     } else if (red == 4 && green == 243 && blue == 5) {
                         blocks.add(new Blocks(x * 16, y * 16, 3));
+                        }
+                    else if (red == 22 && green == 207 && blue == 21){
+                        blocks.add(new Blocks(x * 16, y * 16, 4));
                     }
                 }
             }

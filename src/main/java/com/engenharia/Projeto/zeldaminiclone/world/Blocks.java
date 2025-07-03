@@ -19,6 +19,7 @@ public class Blocks extends Rectangle {
         SpriteSheet caminhoForaCasa = new SpriteSheet("world/terra_grama.png");
         SpriteSheet arbusto = new SpriteSheet("world/terra_grama.png");
 
+
         // Criar imagem com suporte a transparência
         BufferedImage tempTexture = null;
         switch (type) {
@@ -29,10 +30,13 @@ public class Blocks extends Rectangle {
                 texture = chaoCasa.getSprite(0, 0, 16, 16);  //chão casa
                 break;
             case 2:
-                texture = caminhoForaCasa.getSprite(32, 0, 16, 16); //areia
+                texture = caminhoForaCasa.getSprite(0, 16, 16, 16); //areia
                 break;
             case 3:
-                texture = arbusto.getSprite(16, 0, 16, 16); //arbusto
+                texture = arbusto.getSprite(32, 16, 16, 16); //arbusto
+                break;
+            case 4:
+                texture = caminhoForaCasa.getSprite(32, 0, 16, 16); //grama
                 break;
         }
     }

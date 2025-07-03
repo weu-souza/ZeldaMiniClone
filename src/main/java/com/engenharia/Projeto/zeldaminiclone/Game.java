@@ -41,7 +41,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         player = new Player(0, 0); // A posição será atualizada pelo World
 //        enemies = new Enemies(0, 0); // A posição será atualizada pelo World
         npc = new Npc(0, 0); // A posição será atualizada pelo World
-        world = new World("map.png"); // nome da imagem na pasta resources
+        world = new World("maps/map_2.png"); // nome da imagem na pasta resources
         start();
         Camera.x = 0;
         Camera.y = 0;
