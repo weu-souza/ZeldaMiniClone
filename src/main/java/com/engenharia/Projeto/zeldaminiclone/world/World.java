@@ -9,11 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
+
 import com.engenharia.Projeto.zeldaminiclone.creatures.Npc;
+
 import java.util.List;
 
 public class World {
     public static ArrayList<Blocks> blocks = new ArrayList<>();
+    public static ArrayList<Blocks3d> blocks3d = new ArrayList<>();
     public static int WIDTH, HEIGHT;
 
 
@@ -53,9 +56,18 @@ public class World {
                     } else if (red == 255 && green == 255 && blue == 255) {
                         blocks.add(new Blocks(x * 16, y * 16, 2));
                     } else if (red == 4 && green == 243 && blue == 5) {
-                        blocks.add(new Blocks(x * 16, y * 16, 3));
-                        }
-                    else if (red == 22 && green == 207 && blue == 21){
+                        blocks3d.add(new Blocks3d(x * 16, y * 16, 0));
+                        blocks.add(new Blocks(x * 16, y * 16, 2));
+                    }
+                    else if (red == 121 && green == 112 && blue == 122) {
+                        blocks3d.add(new Blocks3d(x * 16, y * 16, 1));
+                        blocks.add(new Blocks(x * 16, y * 16, 2));
+                    }
+                    else if (red == 219 && green == 4 && blue == 243) {
+                        blocks3d.add(new Blocks3d(x * 16, y * 16, 2));
+                        blocks.add(new Blocks(x * 16, y * 16, 1));
+                    }
+                    else if (red == 22 && green == 207 && blue == 21) {
                         blocks.add(new Blocks(x * 16, y * 16, 4));
                     }
                 }
@@ -70,6 +82,9 @@ public class World {
         for (int i = 0; i < blocks.size(); i++) {
             blocks.get(i).render(g);
         }
+        for (int i = 0; i < blocks3d.size(); i++) {
+            blocks3d.get(i).render(g);
+        }
     }
 
     public static boolean isFree(int xnext, int ynext) {
@@ -77,7 +92,13 @@ public class World {
 
         // Verifica colisão com blocos (paredes e grama)
         for (Blocks bloco : blocks) {
-            if ((bloco.type == 0 || bloco.type == 3) && futurePlayer.intersects(bloco)) {
+            if ((bloco.type == 0) && futurePlayer.intersects(bloco)) {
+                return false;
+            }
+        }
+
+        for (Blocks3d b3d : blocks3d) {
+            if ((b3d.type == 0 || b3d.type == 1 || b3d.type == 2) && futurePlayer.intersects(b3d)) {
                 return false;
             }
         }
