@@ -42,11 +42,17 @@ public class World {
                         blocks.add(new Blocks(x * 16, y * 16, 0));
                     } else if (red == 224 && green == 243 && blue == 4) {
                         blocks.add(new Blocks(x * 16, y * 16, 1));
-                    } else if (red == 4 && green == 16 && blue == 243) {
+                    }
+                    else if (red == 4 && green == 16 && blue == 243) {
                         Game.player.x = x * 16;
                         Game.player.y = y * 16;
+                        Game.player.spawnX = Game.player.x;
+                        Game.player.spawnY = Game.player.y;
+
                         blocks.add(new Blocks(x * 16, y * 16, 1));
-                    } else if (red == 245 && green == 9 && blue == 9) {
+
+                    }
+                    else if (red == 245 && green == 9 && blue == 9) {
                         Game.enemies.add(new Enemies(x * 16, y * 16));
                         blocks.add(new Blocks(x * 16, y * 16, 1));
                     } else if (red == 42 && green == 47 && blue == 140) {

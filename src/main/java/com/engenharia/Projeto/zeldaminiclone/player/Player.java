@@ -26,6 +26,7 @@ public class Player {
     public int life = maxLife;
     private HealthBar healthBar = new HealthBar();
     public boolean attackHitRegistered = false;
+    public int spawnX, spawnY; // Posição de spawn do player
 
     public Player(int x, int y) {
         this.x = x;
@@ -154,6 +155,16 @@ public class Player {
                     isAttacking = false;
                 }
             }
+        }
+        if (isDead()) {
+            // Respawn no ponto salvo
+            this.x = spawnX;
+            this.y = spawnY;
+
+            // Resetar vida
+            this.life = maxLife;
+            healthBar.setLife(life); // Atualiza barra de vida
+
         }
 
         Camera.x = Camera.clamp(x - (Game.WIDTH / 2), 0, (World.WIDTH * 16) - Game.WIDTH);
