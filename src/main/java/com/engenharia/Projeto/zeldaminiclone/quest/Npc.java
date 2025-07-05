@@ -1,4 +1,4 @@
-package com.engenharia.Projeto.zeldaminiclone.creatures;
+package com.engenharia.Projeto.zeldaminiclone.quest;
 
 import com.engenharia.Projeto.zeldaminiclone.player.Camera;
 import com.engenharia.Projeto.zeldaminiclone.player.SpriteSheet;
@@ -19,7 +19,6 @@ public class Npc {
         this.height = 16;
         this.speed = 1;
         SpriteSheet sheet = new SpriteSheet("Npc/Npc.png");
-
         this.sprite =  resize(sheet.getSprite(0, 0, 700, 700), 16, 16);
     }
 

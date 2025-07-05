@@ -10,9 +10,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
-import com.engenharia.Projeto.zeldaminiclone.creatures.Npc;
-
-import java.util.List;
+import static com.engenharia.Projeto.zeldaminiclone.Game.enemies;
 
 public class World {
     public static ArrayList<Blocks> blocks = new ArrayList<>();
@@ -42,23 +40,39 @@ public class World {
                         blocks.add(new Blocks(x * 16, y * 16, 0));
                     } else if (red == 224 && green == 243 && blue == 4) {
                         blocks.add(new Blocks(x * 16, y * 16, 1));
-                    }
-                    else if (red == 4 && green == 16 && blue == 243) {
+                    } else if (red == 4 && green == 16 && blue == 243) {
                         Game.player.x = x * 16;
                         Game.player.y = y * 16;
                         Game.player.spawnX = Game.player.x;
                         Game.player.spawnY = Game.player.y;
 
-                        blocks.add(new Blocks(x * 16, y * 16, 1));
+                        if (Game.currentMap == 1 || Game.currentMap == 2) {
+                            blocks.add(new Blocks(x * 16, y * 16, 1));
+                        } else if (Game.currentMap == 3) {
+                            blocks.add(new Blocks(x * 16, y * 16, 2));
+                        }
 
-                    }
-                    else if (red == 245 && green == 9 && blue == 9) {
-                        Game.enemies.add(new Enemies(x * 16, y * 16));
+                    } else if (red == 243 && green == 4 && blue == 231) {
+                        Game.portal.x = x * 16;
+                        Game.portal.y = y * 16;
+                        if (Game.currentMap == 1 || Game.currentMap == 2) {
+                            blocks.add(new Blocks(x * 16, y * 16, 1));
+                        } else if (Game.currentMap == 3) {
+                            blocks.add(new Blocks(x * 16, y * 16, 2));
+                        }
+
+                    } else if (red == 245 && green == 9 && blue == 9) {
+                        enemies.add(new Enemies(x * 16, y * 16));
                         blocks.add(new Blocks(x * 16, y * 16, 1));
                     } else if (red == 42 && green == 47 && blue == 140) {
                         Game.npc.x = x * 16;
                         Game.npc.y = y * 16;
-                        blocks.add(new Blocks(x * 16, y * 16, 1));
+                        if (Game.currentMap == 1 || Game.currentMap == 2) {
+                            blocks.add(new Blocks(x * 16, y * 16, 1));
+                        } else if (Game.currentMap == 3) {
+                            blocks.add(new Blocks(x * 16, y * 16, 2));
+                        }
+
                     } else if (red == 255 && green == 255 && blue == 255) {
                         blocks.add(new Blocks(x * 16, y * 16, 2));
                     } else if (red == 4 && green == 243 && blue == 5) {
@@ -79,6 +93,12 @@ public class World {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void clearWorld() {
+        blocks.clear();
+        enemies.clear();
+        blocks3d.clear();
     }
 
     public void render(Graphics g) {
@@ -113,7 +133,7 @@ public class World {
         }
 
         // Verifica colisão com inimigos
-        for (Enemies enemy : Game.enemies) {
+        for (Enemies enemy : enemies) {
             Rectangle enemyBounds = new Rectangle(enemy.x, enemy.y, 16, 16);
             if (futurePlayer.intersects(enemyBounds)) {
                 return true;

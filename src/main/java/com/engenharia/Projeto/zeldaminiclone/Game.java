@@ -1,10 +1,11 @@
 package com.engenharia.Projeto.zeldaminiclone;
 
 import com.engenharia.Projeto.zeldaminiclone.creatures.Enemies;
-import com.engenharia.Projeto.zeldaminiclone.creatures.Npc;
+import com.engenharia.Projeto.zeldaminiclone.quest.Npc;
 import com.engenharia.Projeto.zeldaminiclone.player.Camera;
 import com.engenharia.Projeto.zeldaminiclone.player.HealthBar;
 import com.engenharia.Projeto.zeldaminiclone.player.Player;
+import com.engenharia.Projeto.zeldaminiclone.world.Portal;
 import com.engenharia.Projeto.zeldaminiclone.world.World;
 
 import java.awt.*;
@@ -28,11 +29,12 @@ public class Game extends Canvas implements Runnable, KeyListener {
     private boolean isRunning = true;
     private Camera camera;
     private World world;
+    public static Portal portal;
     public static Player player;
     public static Npc npc;
     public static List<Enemies> enemies = new ArrayList<>();
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-    HealthBar healthBar = new HealthBar(); // Inicializa a barra de vida com o player
+    public static int currentMap = 1;
 
     public Game() {
         setPreferredSize(new java.awt.Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -41,7 +43,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
         player = new Player(0, 0); // A posição será atualizada pelo World
 //        enemies = new Enemies(0, 0); // A posição será atualizada pelo World
         npc = new Npc(0, 0); // A posição será atualizada pelo World
-        world = new World("maps/map.png"); // nome da imagem na pasta resources
+        portal = new Portal(0, 0); // Inicializa o portal, a posição será atualizada pelo World
+
         start();
         Camera.x = 0;
         Camera.y = 0;
@@ -63,6 +66,30 @@ public class Game extends Canvas implements Runnable, KeyListener {
         thread.start();
     }
 
+
+
+    private void trocarMapa() {
+        World.clearWorld();
+        switch (currentMap) {
+            case 1:
+                world = new World("maps/map.png");
+                currentMap = 2;
+                break;
+            case 2:
+                world = new World("maps/map_2.png");
+                currentMap = 3;
+                break;
+            case 3:
+                world = new World("maps/map_3.png"); // volta pro início
+                currentMap = 1;
+                break;
+            default:
+                System.out.println("Mapa desconhecido, seu desastre.");
+                break;
+        }
+
+    }
+
     public synchronized void stop() {
         isRunning = false;
         try {
@@ -78,7 +105,10 @@ public class Game extends Canvas implements Runnable, KeyListener {
             enemy.tick(player);
         }
         npc.tick();
-
+        if (portal.playerCollides(player.x, player.y)) {
+            trocarMapa();
+        }
+        portal.tick();
         // atack player
         if (player.isAttacking() && !player.attackHitRegistered) {
             Rectangle playerAttack = player.getAttackBounds();
@@ -122,6 +152,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         world.render(g);
         player.render(g);
         npc.render(g);
+        portal.render(g);
         for (Enemies enemy : enemies) {
             enemy.render(g);
         }

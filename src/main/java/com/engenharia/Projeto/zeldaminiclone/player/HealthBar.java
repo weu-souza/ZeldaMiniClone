@@ -25,13 +25,14 @@ public class HealthBar {
         currentLife = Math.max(0, Math.min(maxHearts, life));
     }
 
-    public void render(Graphics g, int x, int y) {
-        int baseX = x - Camera.x;
-        int baseY = y - Camera.y - 20;
+    public void render(Graphics g, int x, int y, boolean useCamera) {
+        int baseX = useCamera ? x - Camera.x : x;
+        int baseY = useCamera ? y - Camera.y - 20 : y; // Só aplica offset se for mundo
 
         for (int i = 0; i < currentLife; i++) {
             g.drawImage(heart, baseX + (i * 18), baseY, 10, 10, null);
         }
     }
+
 
 }

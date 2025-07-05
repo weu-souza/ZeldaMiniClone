@@ -175,7 +175,7 @@ public class Player {
     public void render(Graphics g) {
         int drawX = x - Camera.x;
         int drawY = y - Camera.y;
-        healthBar.render(g, x, y);
+        healthBar.render(g, 10, 10,false);
 
         // Primeiro desenha o player
         BufferedImage currentSprite = sprites[currentDirection][currentAnimationFrame];

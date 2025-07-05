@@ -201,7 +201,7 @@ public class Enemies {
         g.drawImage(currentSprite, drawX, drawY, null);
 
         // Barra de vida
-        healthBar.render(g, x, y);
+        healthBar.render(g, x, y,true);
 
         // Se estiver atacando, desenha o slash
         if (isAttacking) {
