@@ -3,18 +3,18 @@ package com.engenharia.Projeto.zeldaminiclone;
 import com.engenharia.Projeto.zeldaminiclone.creatures.Enemies;
 import com.engenharia.Projeto.zeldaminiclone.creatures.Npc;
 import com.engenharia.Projeto.zeldaminiclone.player.Camera;
+import com.engenharia.Projeto.zeldaminiclone.player.HealthBar;
 import com.engenharia.Projeto.zeldaminiclone.player.Player;
 import com.engenharia.Projeto.zeldaminiclone.world.World;
 
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
 import java.awt.image.BufferStrategy;
 import javax.swing.JFrame;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Game extends Canvas implements Runnable, KeyListener {
@@ -32,7 +32,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public static Npc npc;
     public static List<Enemies> enemies = new ArrayList<>();
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-
+    HealthBar healthBar = new HealthBar(); // Inicializa a barra de vida com o player
 
     public Game() {
         setPreferredSize(new java.awt.Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -41,7 +41,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         player = new Player(0, 0); // A posição será atualizada pelo World
 //        enemies = new Enemies(0, 0); // A posição será atualizada pelo World
         npc = new Npc(0, 0); // A posição será atualizada pelo World
-        world = new World("maps/map_2.png"); // nome da imagem na pasta resources
+        world = new World("maps/map.png"); // nome da imagem na pasta resources
         start();
         Camera.x = 0;
         Camera.y = 0;
@@ -75,9 +75,35 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public void tick() {
         player.tick();
         for (Enemies enemy : enemies) {
-            enemy.tick();
+            enemy.tick(player);
         }
         npc.tick();
+
+        // atack player
+        if (player.isAttacking() && !player.attackHitRegistered) {
+            Rectangle playerAttack = player.getAttackBounds();
+
+            for (Enemies enemy : enemies) {
+                Rectangle enemyBounds = new Rectangle(enemy.x, enemy.y, enemy.width, enemy.height);
+
+                if (playerAttack.intersects(enemyBounds)) {
+                    enemy.takeDamage(1);
+                    player.attackHitRegistered = true; // MARCA o hit, só um por ataque
+                    break; // se quiser atacar só um inimigo por ataque
+                }
+            }
+        }
+
+        Iterator<Enemies> it = enemies.iterator();
+        while (it.hasNext()) {
+            Enemies e = it.next();
+            e.tick(player);
+            if (e.isDead()) {
+                it.remove();
+            }
+        }
+
+
     }
 
     public void render() {
@@ -86,9 +112,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
             this.createBufferStrategy(3);
             return;
         }
+        Graphics g = image.getGraphics();
 
         // Desenhar no buffer (tela base)
-        Graphics g = image.getGraphics();
         g.setColor(Color.black);
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -137,6 +163,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
             if (!player.isAttacking()) { // Crie esse método no player para acessar o atributo privado
                 player.startAttack(); // Também crie esse método para iniciar o ataque
             }
+        }
+        if (e.getKeyCode() == KeyEvent.VK_R) {
+            player.heal(1); // Método para curar o player
         }
     }
 

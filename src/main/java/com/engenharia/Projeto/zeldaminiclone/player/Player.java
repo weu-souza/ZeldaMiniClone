@@ -3,7 +3,7 @@ package com.engenharia.Projeto.zeldaminiclone.player;
 import com.engenharia.Projeto.zeldaminiclone.Game;
 import com.engenharia.Projeto.zeldaminiclone.world.World;
 
-import java.awt.Graphics;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import static com.engenharia.Projeto.zeldaminiclone.player.SpriteSheet.resize;
@@ -22,11 +22,34 @@ public class Player {
     private boolean isAttacking = false;
     private int attackFrame = 0;
     private int attackFrameDelay = 0;
+    public int maxLife = 5; // Máximo de vida do player
+    public int life = maxLife;
+    private HealthBar healthBar = new HealthBar();
+    public boolean attackHitRegistered = false;
 
     public Player(int x, int y) {
         this.x = x;
         this.y = y;
         loadSprites();
+        healthBar.setLife(life);
+    }
+
+    public void takeDamage(int amount) {
+        life -= amount;
+        if (life < 0) life = 0;
+        healthBar.setLife(life);
+    }
+
+    public void heal(int amount) {
+        life += amount;
+        if (life > maxLife) {
+            life = maxLife;
+        }
+        healthBar.setLife(life);
+    }
+
+    public boolean isDead() {
+        return life <= 0;
     }
 
     private void loadSprites() {
@@ -65,12 +88,30 @@ public class Player {
             isAttacking = true;
             attackFrame = 0;
             attackFrameDelay = 0;
+            attackHitRegistered = false;
         }
     }
 
+    public Rectangle getAttackBounds() {
+        int attackRange = 16;
+
+        switch (currentDirection) {
+            case 0: // baixo
+                return new Rectangle(x, y + 16, 16, attackRange);
+            case 1: // direita
+                return new Rectangle(x + 16, y, attackRange, 16);
+            case 2: // cima
+                return new Rectangle(x, y - attackRange, 16, attackRange);
+            case 3: // esquerda
+                return new Rectangle(x - attackRange, y, attackRange, 16);
+        }
+
+        return new Rectangle();
+    }
+
+
     public void tick() {
         boolean isMoving = false;
-
         if (right && World.isFree(x + speed, y)) {
             x += speed;
             currentDirection = 1;
@@ -123,6 +164,7 @@ public class Player {
     public void render(Graphics g) {
         int drawX = x - Camera.x;
         int drawY = y - Camera.y;
+        healthBar.render(g, x, y);
 
         // Primeiro desenha o player
         BufferedImage currentSprite = sprites[currentDirection][currentAnimationFrame];
@@ -139,10 +181,18 @@ public class Player {
 
             // Deslocamento para dar sensação de ataque em direção
             switch (currentDirection) {
-                case 0: slashY += 16; break; // baixo
-                case 1: slashX += 16; break; // direita
-                case 2: slashY -= 16; break; // cima
-                case 3: slashX -= 16; break; // esquerda
+                case 0:
+                    slashY += 16;
+                    break; // baixo
+                case 1:
+                    slashX += 16;
+                    break; // direita
+                case 2:
+                    slashY -= 16;
+                    break; // cima
+                case 3:
+                    slashX -= 16;
+                    break; // esquerda
             }
 
             BufferedImage slash = (currentDirection == 0 || currentDirection == 2) ? attackSprites[1] : attackSprites[0];
@@ -163,7 +213,6 @@ public class Player {
             }
         }
     }
-
 
 
 }

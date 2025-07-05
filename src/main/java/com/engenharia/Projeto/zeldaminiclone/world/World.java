@@ -58,16 +58,13 @@ public class World {
                     } else if (red == 4 && green == 243 && blue == 5) {
                         blocks3d.add(new Blocks3d(x * 16, y * 16, 0));
                         blocks.add(new Blocks(x * 16, y * 16, 2));
-                    }
-                    else if (red == 121 && green == 112 && blue == 122) {
+                    } else if (red == 121 && green == 112 && blue == 122) {
                         blocks3d.add(new Blocks3d(x * 16, y * 16, 1));
                         blocks.add(new Blocks(x * 16, y * 16, 2));
-                    }
-                    else if (red == 219 && green == 4 && blue == 243) {
+                    } else if (red == 219 && green == 4 && blue == 243) {
                         blocks3d.add(new Blocks3d(x * 16, y * 16, 2));
                         blocks.add(new Blocks(x * 16, y * 16, 1));
-                    }
-                    else if (red == 22 && green == 207 && blue == 21) {
+                    } else if (red == 22 && green == 207 && blue == 21) {
                         blocks.add(new Blocks(x * 16, y * 16, 4));
                     }
                 }
@@ -113,7 +110,7 @@ public class World {
         for (Enemies enemy : Game.enemies) {
             Rectangle enemyBounds = new Rectangle(enemy.x, enemy.y, 16, 16);
             if (futurePlayer.intersects(enemyBounds)) {
-                return false;
+                return true;
             }
         }
 

@@ -20,7 +20,7 @@ public class Npc {
         this.speed = 1;
         SpriteSheet sheet = new SpriteSheet("Npc/Npc.png");
 
-        this.sprite =  resize(sheet.getSprite(0, 0, 700, 700), 16, 16);;
+        this.sprite =  resize(sheet.getSprite(0, 0, 700, 700), 16, 16);
     }
 
     public void tick() {
