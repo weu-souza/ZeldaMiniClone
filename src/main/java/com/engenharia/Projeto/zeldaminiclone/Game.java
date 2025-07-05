@@ -35,16 +35,18 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public static List<Enemies> enemies = new ArrayList<>();
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
     public static int currentMap = 1;
+    boolean ePressed = false; /* detectar se E foi pressionado */
+    ;
+
 
     public Game() {
         setPreferredSize(new java.awt.Dimension(WIDTH * SCALE, HEIGHT * SCALE));
         initFrame();
         addKeyListener(this);
         player = new Player(0, 0); // A posição será atualizada pelo World
-//        enemies = new Enemies(0, 0); // A posição será atualizada pelo World
         npc = new Npc(0, 0); // A posição será atualizada pelo World
         portal = new Portal(0, 0); // Inicializa o portal, a posição será atualizada pelo World
-
+        world = new World("maps/map.png");
         start();
         Camera.x = 0;
         Camera.y = 0;
@@ -65,7 +67,6 @@ public class Game extends Canvas implements Runnable, KeyListener {
         thread = new Thread(this);
         thread.start();
     }
-
 
 
     private void trocarMapa() {
@@ -104,11 +105,16 @@ public class Game extends Canvas implements Runnable, KeyListener {
         for (Enemies enemy : enemies) {
             enemy.tick(player);
         }
-        npc.tick();
-        if (portal.playerCollides(player.x, player.y)) {
-            trocarMapa();
+        npc.tick(player, enemies.size(), ePressed);
+
+        if (npc.getQuest().isCompleted()) {
+            portal.tick();
+
+            if (portal.playerCollides(player.x, player.y)) {
+                trocarMapa();
+            }
         }
-        portal.tick();
+
         // atack player
         if (player.isAttacking() && !player.attackHitRegistered) {
             Rectangle playerAttack = player.getAttackBounds();
@@ -152,7 +158,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
         world.render(g);
         player.render(g);
         npc.render(g);
-        portal.render(g);
+        if (npc.getQuest().isCompleted()) {
+            portal.render(g);
+        }
         for (Enemies enemy : enemies) {
             enemy.render(g);
         }
@@ -197,6 +205,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
         }
         if (e.getKeyCode() == KeyEvent.VK_R) {
             player.heal(1); // Método para curar o player
+        }
+        if (e.getKeyCode() == KeyEvent.VK_E) {
+            ePressed = true;
         }
     }
 
