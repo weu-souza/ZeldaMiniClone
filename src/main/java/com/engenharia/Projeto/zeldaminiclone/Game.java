@@ -9,6 +9,7 @@ import com.engenharia.Projeto.zeldaminiclone.player.Camera;
 import com.engenharia.Projeto.zeldaminiclone.player.HealthBar;
 import com.engenharia.Projeto.zeldaminiclone.player.Player;
 import com.engenharia.Projeto.zeldaminiclone.world.Portal;
+import com.engenharia.Projeto.zeldaminiclone.world.Sound;
 import com.engenharia.Projeto.zeldaminiclone.world.World;
 
 import java.awt.*;
@@ -42,6 +43,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
     boolean ePressed = false; /* detectar se E foi pressionado */
     CoinQuest coinQuest;
     private boolean jogoFinalizado = false;
+    public static boolean portalSoundPlayed = false;
+    private Sound portalSound = new Sound("/sounds/portal.wav");
+    private Sound bgAUdio = new Sound("/sounds/background-sound.wav");
 
 
     public Game() {
@@ -71,6 +75,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     public synchronized void start() {
         thread = new Thread(this);
+        bgAUdio.setVolume(0.05f);
+        bgAUdio.loop();
         thread.start();
     }
 
@@ -87,7 +93,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
                 currentMap = 4;
                 break;
         }
-
+        portalSoundPlayed = false;
+        portalSound.stop();
+        player.audioStop();
         World.clearWorld(); // limpa tudo com o mapa já atualizado
 
         // carrega o novo mapa, que precisa popular blocos novamente
@@ -113,16 +121,19 @@ public class Game extends Canvas implements Runnable, KeyListener {
         }
     }
 
-    public void tick() {
+    private void gameTick() {
         player.tick();
 
         for (Enemies enemy : enemies) {
             enemy.tick(player);
         }
-       if(npc != null) {
-           npc.tick(player, enemies.size(), ePressed);;
+        if (npc != null) {
+            npc.tick(player, enemies.size(), ePressed);
+            ;
         }
+    }
 
+    private void questTick() {
         if (coinQuest.isActive()) {
             coinQuest.update();
         }
@@ -142,13 +153,20 @@ public class Game extends Canvas implements Runnable, KeyListener {
             portal.tick();
             podeAbrirPortal = true;
         }
-
         if (currentMap == 3) {
-            // No mapa 3 o portal já foi criado no trocarMapa()
+            if (portal == null) {
+                portal = new Portal(0, 0); // insira a posição certa
+            }
+            portal.tick();
             podeAbrirPortal = true;
         }
 
         if (podeAbrirPortal && portal != null) {
+            if (!portalSoundPlayed) {
+                portalSound.setVolume(0.3f);
+                portalSound.play();
+                portalSoundPlayed = true;
+            }
             portal.tick();
 
             if (portal.playerCollides(player.x, player.y)) {
@@ -161,21 +179,6 @@ public class Game extends Canvas implements Runnable, KeyListener {
             System.exit(0);
         }
 
-        // atack player
-        if (player.isAttacking() && !player.attackHitRegistered) {
-            Rectangle playerAttack = player.getAttackBounds();
-
-            for (Enemies enemy : enemies) {
-                Rectangle enemyBounds = new Rectangle(enemy.x, enemy.y, enemy.width, enemy.height);
-
-                if (playerAttack.intersects(enemyBounds)) {
-                    enemy.takeDamage(1);
-                    player.attackHitRegistered = true; // MARCA o hit, só um por ataque
-                    break; // se quiser atacar só um inimigo por ataque
-                }
-            }
-        }
-
         for (Collectables c : coin) {
             c.tick();
             if (c.playerCollides(player.x, player.y)) {
@@ -185,8 +188,26 @@ public class Game extends Canvas implements Runnable, KeyListener {
             }
         }
         coinQuest.update();
+    }
 
 
+    private void atackPlayerTick() {
+        if (player.isAttacking() && !player.attackHitRegistered) {
+            Rectangle playerAttack = player.getAttackBounds();
+
+            for (Enemies enemy : enemies) {
+                Rectangle enemyBounds = new Rectangle(enemy.x, enemy.y, enemy.width, enemy.height);
+
+                if (playerAttack.intersects(enemyBounds)) {
+                    enemy.takeDamage(1);
+                    player.attackHitRegistered = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void attackMobTick() {
         Iterator<Enemies> it = enemies.iterator();
         while (it.hasNext()) {
             Enemies e = it.next();
@@ -195,8 +216,46 @@ public class Game extends Canvas implements Runnable, KeyListener {
                 it.remove();
             }
         }
+    }
 
 
+    public void tick() {
+        gameTick();
+        questTick();
+        atackPlayerTick();
+        attackMobTick();
+    }
+
+
+    private void renderElements(Graphics g) {
+        world.render(g);
+        player.render(g);
+        if (Game.npc != null) {
+            Game.npc.render(g);
+        }
+        for (Enemies enemy : enemies) {
+            enemy.render(g);
+        }
+        for (Collectables c : coin) {
+            c.render(g);
+        }
+    }
+
+    private void renderPortalAccordingToMap(Graphics g) {
+        boolean podeRenderizarPortal = false;
+        if (currentMap == 1 && npc.getKillEnemiesQuest().isCompleted()) {
+            podeRenderizarPortal = true;
+        }
+        if (currentMap == 2 && npc.getCollectCoinsQuest().isCompleted()) {
+            podeRenderizarPortal = true;
+        }
+        if (currentMap == 3) {
+            podeRenderizarPortal = true;
+        }
+
+        if (podeRenderizarPortal && portal != null) {
+            portal.render(g);
+        }
     }
 
     public void render() {
@@ -214,33 +273,10 @@ public class Game extends Canvas implements Runnable, KeyListener {
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
         // Renderizar todos os elementos no buffer SEM escala
-        world.render(g);
-        player.render(g);
-        if (Game.npc != null) {
-            Game.npc.render(g);
-        }
-        boolean podeRenderizarPortal = false;
+        renderElements(g);
 
-        if (currentMap == 1 && npc.getKillEnemiesQuest().isCompleted()) {
-            podeRenderizarPortal = true;
-        }
-        if (currentMap == 2 && npc.getCollectCoinsQuest().isCompleted()) {
-            podeRenderizarPortal = true;
-        }
-        if (currentMap == 3) {
-            podeRenderizarPortal = true;
-        }
+        renderPortalAccordingToMap(g);
 
-        if (podeRenderizarPortal && portal != null) {
-            portal.render(g);
-        }
-
-        for (Enemies enemy : enemies) {
-            enemy.render(g);
-        }
-        for (Collectables c : coin) {
-            c.render(g);
-        }
         g.dispose();
 
         // Agora desenhar o buffer com escala na tela real

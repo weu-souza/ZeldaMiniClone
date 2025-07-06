@@ -2,6 +2,7 @@ package com.engenharia.Projeto.zeldaminiclone.player;
 
 import com.engenharia.Projeto.zeldaminiclone.Game;
 import com.engenharia.Projeto.zeldaminiclone.colectables.Inventory;
+import com.engenharia.Projeto.zeldaminiclone.world.Sound;
 import com.engenharia.Projeto.zeldaminiclone.world.World;
 
 import java.awt.*;
@@ -15,21 +16,27 @@ public class Player {
     public boolean right, left, up, down;
     private BufferedImage[][] sprites;
     private int currentAnimationFrame = 0;
-    private int animationFrames = 2; // 2 frames por direção
-    private int animationDelay = 10; // Controle de velocidade da animação
+    private final int animationFrames = 2; // 2 frames por direção
+    private final int animationDelay = 10; // Controle de velocidade da animação
     private int animationCount = 0;
     private int currentDirection = 0; // 0=baixo, 1=direita, 2=cima, 3=esquerda
-    private BufferedImage[] attackSprites = new BufferedImage[3];
+    private final BufferedImage[] attackSprites = new BufferedImage[3];
     private boolean isAttacking = false;
     private int attackFrame = 0;
     private int attackFrameDelay = 0;
     public int maxLife = 5; // Máximo de vida do player
     public int life = maxLife;
-    private HealthBar healthBar = new HealthBar();
+    private final HealthBar healthBar = new HealthBar();
     public boolean attackHitRegistered = false;
     public int spawnX, spawnY; // Posição de spawn do player
     public Inventory inventory = new Inventory();
-
+    private final Sound walkingSound = new Sound("/sounds/walking.wav");
+    private boolean walkingSoundPlaying = false;
+    private boolean dying = false;
+    private long deathTime = 0;
+    private final int DEATH_DELAY = 2000;
+    private Sound coinSound = new Sound("/sounds/coin.wav");
+    private Sound gameOver = new Sound("/sounds/game_over.wav");
 
     public Player(int x, int y) {
         this.x = x;
@@ -40,7 +47,12 @@ public class Player {
 
     public void addCoin(int amount) {
         inventory.addCoins(amount);
+        coinSound.setVolume(0.5f);
+        coinSound.play();
+
+
     }
+
     public Inventory getInventory() {
         return inventory;
     }
@@ -53,6 +65,7 @@ public class Player {
 
     public void heal(int amount) {
         life += amount;
+        new Sound("/sounds/health.wav").play();
         if (life > maxLife) {
             life = maxLife;
         }
@@ -100,6 +113,7 @@ public class Player {
             attackFrame = 0;
             attackFrameDelay = 0;
             attackHitRegistered = false;
+            new Sound("/sounds/sword-sound.wav").play();
         }
     }
 
@@ -120,30 +134,49 @@ public class Player {
         return new Rectangle();
     }
 
+    // classes do tick() para ficar mais facil de ler e manter futuramente
 
-    public void tick() {
+    public void audioPlay() {
+        if (!walkingSoundPlaying) {
+            walkingSound.setVolume(0.5f);
+            walkingSound.loop();
+            walkingSoundPlaying = true;
+        }
+    }
+
+    public void audioStop() {
+        if (walkingSoundPlaying) {
+            walkingSound.stop();
+            walkingSoundPlaying = false;
+        }
+    }
+
+    private boolean playerWalk() {
         boolean isMoving = false;
         if (right && World.isFree(x + speed, y)) {
             x += speed;
             currentDirection = 1;
             isMoving = true;
-        } else if (left && World.isFree(x - speed, y)) {
+        }
+        if (left && World.isFree(x - speed, y)) {
             x -= speed;
             currentDirection = 3;
             isMoving = true;
         }
-
         if (up && World.isFree(x, y - speed)) {
             y -= speed;
             currentDirection = 2;
             isMoving = true;
-        } else if (down && World.isFree(x, y + speed)) {
+        }
+        if (down && World.isFree(x, y + speed)) {
             y += speed;
             currentDirection = 0;
             isMoving = true;
         }
+        return isMoving;
+    }
 
-        // Animação de movimento
+    private void walkAnimation(boolean isMoving) {
         if (isMoving && !isAttacking) {  // Não anima movimento se estiver atacando
             animationCount++;
             if (animationCount > animationDelay) {
@@ -153,8 +186,9 @@ public class Player {
         } else if (!isAttacking) {
             currentAnimationFrame = 0;
         }
+    }
 
-        // Animação de ataque
+    private void atackAnimation() {
         if (isAttacking) {
             attackFrameDelay++;
             if (attackFrameDelay >= 5) {
@@ -166,37 +200,71 @@ public class Player {
                 }
             }
         }
-        if (isDead()) {
-            // Respawn no ponto salvo
-            this.x = spawnX;
-            this.y = spawnY;
+    }
 
-            // Resetar vida
-            this.life = maxLife;
-            healthBar.setLife(life); // Atualiza barra de vida
-
+    private void playerDeath() {
+        if (isDead() && !dying) {
+            dying = true;
+            deathTime = System.currentTimeMillis();
+            gameOver.setVolume(0.5f);
+            gameOver.play();
+            return; // interrompe o resto do tick
         }
+
+        if (dying) {
+            if (System.currentTimeMillis() - deathTime >= DEATH_DELAY) {
+                dying = false;
+                this.x = spawnX;
+                this.y = spawnY;
+                this.life = maxLife;
+                healthBar.setLife(life);
+            } else {
+                return; // ainda está "morto", não processa o restante do tick
+            }
+        }
+    }
+
+    private void movingSound(boolean isMoving) {
+        if (isMoving) {
+            audioPlay();
+        } else {
+            audioStop();
+        }
+    }
+
+    public void tick() {
+        boolean isMoving = false;
+        isMoving = playerWalk();
+
+        movingSound(isMoving);
+
+        // Animação de movimento
+        walkAnimation(isMoving);
+
+        // Animação de ataque
+        atackAnimation();
+        playerDeath();
 
         Camera.x = Camera.clamp(x - (Game.WIDTH / 2), 0, (World.WIDTH * 16) - Game.WIDTH);
         Camera.y = Camera.clamp(y - (Game.HEIGHT / 2), 0, (World.HEIGHT * 16) - Game.HEIGHT);
     }
 
-
-    public void render(Graphics g) {
-        int drawX = x - Camera.x;
-        int drawY = y - Camera.y;
+    // separando o render em metodos para ficar mais facil de ler
+    public void hudRender(Graphics g) {
         healthBar.render(g, 10, 10, false);
         inventory.render(g, 290, 10, false);
+    }
 
-        // Primeiro desenha o player
+    private void renderPlayer(Graphics g, int drawX, int drawY) {
         BufferedImage currentSprite = sprites[currentDirection][currentAnimationFrame];
         if (currentDirection == 3) { // esquerda espelhada
             g.drawImage(currentSprite, drawX + 16, drawY, -16, 16, null);
         } else {
             g.drawImage(currentSprite, drawX, drawY, null);
         }
+    }
 
-        // Agora desenha o slash (ataque) se estiver atacando
+    private void atackAnimationRender(Graphics g, int drawX, int drawY) {
         if (isAttacking) {
             int slashX = drawX;
             int slashY = drawY;
@@ -234,6 +302,18 @@ public class Player {
                     break;
             }
         }
+    }
+
+    public void render(Graphics g) {
+        int drawX = x - Camera.x;
+        int drawY = y - Camera.y;
+        hudRender(g);
+
+        // Primeiro desenha o player
+        renderPlayer(g, drawX, drawY);
+
+        // Agora desenha o slash (ataque) se estiver atacando
+        atackAnimationRender(g, drawX, drawY);
     }
 
 

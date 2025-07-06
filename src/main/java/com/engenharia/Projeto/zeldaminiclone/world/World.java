@@ -52,8 +52,7 @@ public class World {
                                 blocks.add(new Blocks(x * 16, y * 16, 2));
                             }
                         }
-
-                    } else if (red == 245 && green == 9 && blue == 9) {
+                    }else if (red == 245 && green == 9 && blue == 9) {
                         enemies.add(new Enemies(x * 16, y * 16));
                         blocks.add(new Blocks(x * 16, y * 16, 1));
                     }
