@@ -1,5 +1,6 @@
 package com.engenharia.Projeto.zeldaminiclone;
 
+import com.engenharia.Projeto.zeldaminiclone.colectables.Collectables;
 import com.engenharia.Projeto.zeldaminiclone.creatures.Enemies;
 import com.engenharia.Projeto.zeldaminiclone.quest.Npc;
 import com.engenharia.Projeto.zeldaminiclone.player.Camera;
@@ -33,10 +34,10 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public static Player player;
     public static Npc npc;
     public static List<Enemies> enemies = new ArrayList<>();
+    public static List<Collectables> coin = new ArrayList<>();
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
     public static int currentMap = 1;
     boolean ePressed = false; /* detectar se E foi pressionado */
-    ;
 
 
     public Game() {
@@ -46,7 +47,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         player = new Player(0, 0); // A posição será atualizada pelo World
         npc = new Npc(0, 0); // A posição será atualizada pelo World
         portal = new Portal(0, 0); // Inicializa o portal, a posição será atualizada pelo World
-        world = new World("maps/map.png");
+        world = new World("maps/map_2.png");
         start();
         Camera.x = 0;
         Camera.y = 0;
@@ -102,6 +103,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     public void tick() {
         player.tick();
+
         for (Enemies enemy : enemies) {
             enemy.tick(player);
         }
@@ -130,6 +132,15 @@ public class Game extends Canvas implements Runnable, KeyListener {
             }
         }
 
+        for (Collectables c : coin) {
+            c.tick();
+            if (c.playerCollides(player.x, player.y)) {
+                player.addCoin(1);
+                coin.remove(c);
+                break;
+            }
+        }
+
         Iterator<Enemies> it = enemies.iterator();
         while (it.hasNext()) {
             Enemies e = it.next();
@@ -144,11 +155,13 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     public void render() {
         BufferStrategy bs = this.getBufferStrategy();
+        Graphics g = image.getGraphics();
+
         if (bs == null) {
             this.createBufferStrategy(3);
             return;
         }
-        Graphics g = image.getGraphics();
+
 
         // Desenhar no buffer (tela base)
         g.setColor(Color.black);
@@ -163,6 +176,9 @@ public class Game extends Canvas implements Runnable, KeyListener {
         }
         for (Enemies enemy : enemies) {
             enemy.render(g);
+        }
+        for (Collectables c : coin) {
+            c.render(g);
         }
         g.dispose();
 

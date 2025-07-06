@@ -1,6 +1,7 @@
 package com.engenharia.Projeto.zeldaminiclone.player;
 
 import com.engenharia.Projeto.zeldaminiclone.Game;
+import com.engenharia.Projeto.zeldaminiclone.colectables.Inventory;
 import com.engenharia.Projeto.zeldaminiclone.world.World;
 
 import java.awt.*;
@@ -27,12 +28,18 @@ public class Player {
     private HealthBar healthBar = new HealthBar();
     public boolean attackHitRegistered = false;
     public int spawnX, spawnY; // Posição de spawn do player
+    public Inventory inventory = new Inventory();
+
 
     public Player(int x, int y) {
         this.x = x;
         this.y = y;
         loadSprites();
         healthBar.setLife(life);
+    }
+
+    public void addCoin(int amount) {
+        inventory.addCoins(amount);
     }
 
     public void takeDamage(int amount) {
@@ -175,7 +182,8 @@ public class Player {
     public void render(Graphics g) {
         int drawX = x - Camera.x;
         int drawY = y - Camera.y;
-        healthBar.render(g, 10, 10,false);
+        healthBar.render(g, 10, 10, false);
+        inventory.render(g, 290, 10, false);
 
         // Primeiro desenha o player
         BufferedImage currentSprite = sprites[currentDirection][currentAnimationFrame];

@@ -1,6 +1,7 @@
 package com.engenharia.Projeto.zeldaminiclone.world;
 
 import com.engenharia.Projeto.zeldaminiclone.Game;
+import com.engenharia.Projeto.zeldaminiclone.colectables.Collectables;
 import com.engenharia.Projeto.zeldaminiclone.creatures.Enemies;
 
 import java.awt.*;
@@ -16,7 +17,7 @@ public class World {
     public static ArrayList<Blocks> blocks = new ArrayList<>();
     public static ArrayList<Blocks3d> blocks3d = new ArrayList<>();
     public static int WIDTH, HEIGHT;
-
+    public static ArrayList<Collectables> coin = new ArrayList<>();
 
     public World(String path) {
 
@@ -81,10 +82,12 @@ public class World {
                     } else if (red == 121 && green == 112 && blue == 122) {
                         blocks3d.add(new Blocks3d(x * 16, y * 16, 1));
                         blocks.add(new Blocks(x * 16, y * 16, 2));
-                    } else if (red == 219 && green == 4 && blue == 243) {
-                        blocks3d.add(new Blocks3d(x * 16, y * 16, 2));
+                    }
+                    else if (red == 219 && green == 4 && blue == 243) {
+                        Game.coin.add(new Collectables(x * 16, y * 16));
                         blocks.add(new Blocks(x * 16, y * 16, 1));
-                    } else if (red == 22 && green == 207 && blue == 21) {
+                    }
+                    else if (red == 22 && green == 207 && blue == 21) {
                         blocks.add(new Blocks(x * 16, y * 16, 4));
                     }
                 }
@@ -99,6 +102,7 @@ public class World {
         blocks.clear();
         enemies.clear();
         blocks3d.clear();
+        Game.coin.clear();
     }
 
     public void render(Graphics g) {

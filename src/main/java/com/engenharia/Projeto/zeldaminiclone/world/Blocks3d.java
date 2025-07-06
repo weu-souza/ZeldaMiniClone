@@ -25,12 +25,6 @@ public class Blocks3d extends Rectangle{
             case 1:
                 texture = caminhoForaCasa.getSprite(0, 64, 16, 16); //arvore
                 break;
-            case 2:
-                texture = caminhoForaCasa.getSprite(0, 112, 16, 16); //vaso
-                break;
-            case 3:
-                texture = caminhoForaCasa.getSprite(16, 112, 16, 16); //vaso quebrado
-                break;
         }
 
     }
