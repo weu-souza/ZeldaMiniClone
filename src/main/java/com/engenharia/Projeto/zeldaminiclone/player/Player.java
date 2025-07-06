@@ -43,11 +43,14 @@ public class Player {
         this.y = y;
         loadSprites();
         healthBar.setLife(life);
+        coinSound.setVolume(0.5f);
+        walkingSound.setVolume(0.5f);
+        gameOver.setVolume(0.1f);
     }
 
     public void addCoin(int amount) {
         inventory.addCoins(amount);
-        coinSound.setVolume(0.5f);
+
         coinSound.play();
 
 
@@ -138,7 +141,7 @@ public class Player {
 
     public void audioPlay() {
         if (!walkingSoundPlaying) {
-            walkingSound.setVolume(0.5f);
+
             walkingSound.loop();
             walkingSoundPlaying = true;
         }
@@ -206,7 +209,7 @@ public class Player {
         if (isDead() && !dying) {
             dying = true;
             deathTime = System.currentTimeMillis();
-            gameOver.setVolume(0.5f);
+
             gameOver.play();
             return; // interrompe o resto do tick
         }

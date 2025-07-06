@@ -57,6 +57,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
         npc = new Npc(0, 0, coinQuest); // A posição será atualizada pelo World
         portal = new Portal(0, 0); // Inicializa o portal, a posição será atualizada pelo World
         world = new World("maps/map.png");
+        portalSound.setVolume(0.3f);
+        bgAUdio.setVolume(0.05f);
         start();
         Camera.x = 0;
         Camera.y = 0;
@@ -75,7 +77,6 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     public synchronized void start() {
         thread = new Thread(this);
-        bgAUdio.setVolume(0.05f);
         bgAUdio.loop();
         thread.start();
     }
@@ -163,7 +164,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
         if (podeAbrirPortal && portal != null) {
             if (!portalSoundPlayed) {
-                portalSound.setVolume(0.3f);
+
                 portalSound.play();
                 portalSoundPlayed = true;
             }
