@@ -41,6 +41,9 @@ public class Player {
     public void addCoin(int amount) {
         inventory.addCoins(amount);
     }
+    public Inventory getInventory() {
+        return inventory;
+    }
 
     public void takeDamage(int amount) {
         life -= amount;

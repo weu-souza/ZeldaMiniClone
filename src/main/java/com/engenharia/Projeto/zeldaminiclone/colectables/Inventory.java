@@ -22,6 +22,10 @@ public class Inventory {
         coins += amount;
     }
 
+    public int getMaxCoins() {
+        return maxCoins;
+    }
+
     public int getCoins() {
         return coins;
     }

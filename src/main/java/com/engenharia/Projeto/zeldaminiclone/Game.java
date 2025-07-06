@@ -1,7 +1,9 @@
 package com.engenharia.Projeto.zeldaminiclone;
 
 import com.engenharia.Projeto.zeldaminiclone.colectables.Collectables;
+import com.engenharia.Projeto.zeldaminiclone.colectables.Inventory;
 import com.engenharia.Projeto.zeldaminiclone.creatures.Enemies;
+import com.engenharia.Projeto.zeldaminiclone.quest.CoinQuest;
 import com.engenharia.Projeto.zeldaminiclone.quest.Npc;
 import com.engenharia.Projeto.zeldaminiclone.player.Camera;
 import com.engenharia.Projeto.zeldaminiclone.player.HealthBar;
@@ -11,7 +13,7 @@ import com.engenharia.Projeto.zeldaminiclone.world.World;
 
 import java.awt.*;
 import java.awt.image.BufferStrategy;
-import javax.swing.JFrame;
+import javax.swing.*;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -38,6 +40,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
     public static int currentMap = 1;
     boolean ePressed = false; /* detectar se E foi pressionado */
+    CoinQuest coinQuest;
+    private boolean jogoFinalizado = false;
 
 
     public Game() {
@@ -45,9 +49,10 @@ public class Game extends Canvas implements Runnable, KeyListener {
         initFrame();
         addKeyListener(this);
         player = new Player(0, 0); // A posição será atualizada pelo World
-        npc = new Npc(0, 0); // A posição será atualizada pelo World
+        coinQuest = new CoinQuest(player.getInventory());
+        npc = new Npc(0, 0, coinQuest); // A posição será atualizada pelo World
         portal = new Portal(0, 0); // Inicializa o portal, a posição será atualizada pelo World
-        world = new World("maps/map_2.png");
+        world = new World("maps/map.png");
         start();
         Camera.x = 0;
         Camera.y = 0;
@@ -71,25 +76,32 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
 
     private void trocarMapa() {
-        World.clearWorld();
         switch (currentMap) {
             case 1:
-                world = new World("maps/map.png");
                 currentMap = 2;
                 break;
             case 2:
-                world = new World("maps/map_2.png");
                 currentMap = 3;
                 break;
             case 3:
-                world = new World("maps/map_3.png"); // volta pro início
-                currentMap = 1;
-                break;
-            default:
-                System.out.println("Mapa desconhecido, seu desastre.");
+                currentMap = 4;
                 break;
         }
 
+        World.clearWorld(); // limpa tudo com o mapa já atualizado
+
+        // carrega o novo mapa, que precisa popular blocos novamente
+        switch (currentMap) {
+            case 2:
+                world = new World("maps/map_2.png");
+                break;
+            case 3:
+                world = new World("maps/map_3.png");
+                break;
+            case 4:
+                world = new World("maps/map_4.png");
+                break;
+        }
     }
 
     public synchronized void stop() {
@@ -107,14 +119,46 @@ public class Game extends Canvas implements Runnable, KeyListener {
         for (Enemies enemy : enemies) {
             enemy.tick(player);
         }
-        npc.tick(player, enemies.size(), ePressed);
+       if(npc != null) {
+           npc.tick(player, enemies.size(), ePressed);;
+        }
 
-        if (npc.getQuest().isCompleted()) {
+        if (coinQuest.isActive()) {
+            coinQuest.update();
+        }
+        boolean podeAbrirPortal = false;
+
+        if (currentMap == 1 && npc.getKillEnemiesQuest().isCompleted()) {
+            if (portal == null) {
+                portal = new Portal(0, 0); // insira a posição certa
+            }
+            podeAbrirPortal = true;
+        }
+
+        if (currentMap == 2 && npc.getCollectCoinsQuest().isCompleted()) {
+            if (portal == null) {
+                portal = new Portal(0, 0); // insira a posição certa
+            }
+            portal.tick();
+            podeAbrirPortal = true;
+        }
+
+        if (currentMap == 3) {
+            // No mapa 3 o portal já foi criado no trocarMapa()
+            podeAbrirPortal = true;
+        }
+
+        if (podeAbrirPortal && portal != null) {
             portal.tick();
 
             if (portal.playerCollides(player.x, player.y)) {
                 trocarMapa();
             }
+        }
+        if (currentMap == 4 && !jogoFinalizado) {
+            jogoFinalizado = true;
+            JOptionPane.showMessageDialog(null, "Parabéns! Jogo finalizado!");
+            System.exit(0);
         }
 
         // atack player
@@ -140,6 +184,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
                 break;
             }
         }
+        coinQuest.update();
+
 
         Iterator<Enemies> it = enemies.iterator();
         while (it.hasNext()) {
@@ -170,10 +216,25 @@ public class Game extends Canvas implements Runnable, KeyListener {
         // Renderizar todos os elementos no buffer SEM escala
         world.render(g);
         player.render(g);
-        npc.render(g);
-        if (npc.getQuest().isCompleted()) {
+        if (Game.npc != null) {
+            Game.npc.render(g);
+        }
+        boolean podeRenderizarPortal = false;
+
+        if (currentMap == 1 && npc.getKillEnemiesQuest().isCompleted()) {
+            podeRenderizarPortal = true;
+        }
+        if (currentMap == 2 && npc.getCollectCoinsQuest().isCompleted()) {
+            podeRenderizarPortal = true;
+        }
+        if (currentMap == 3) {
+            podeRenderizarPortal = true;
+        }
+
+        if (podeRenderizarPortal && portal != null) {
             portal.render(g);
         }
+
         for (Enemies enemy : enemies) {
             enemy.render(g);
         }
@@ -236,6 +297,8 @@ public class Game extends Canvas implements Runnable, KeyListener {
             player.up = false;
         } else if (e.getKeyCode() == KeyEvent.VK_S) {
             player.down = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_E) {
+            ePressed = false;
         }
     }
 
