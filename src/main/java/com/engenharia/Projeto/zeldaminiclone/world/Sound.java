@@ -17,7 +17,7 @@ public class Sound {
             AudioInputStream ais = AudioSystem.getAudioInputStream(resourceUrl);
             clip = AudioSystem.getClip();
             clip.open(ais);
-
+            setVolume(0.5f); // Define o volume inicial (0.0 a 1.0)
 
         } catch (Exception e) {
             System.err.println("Erro ao carregar áudio: " + path);

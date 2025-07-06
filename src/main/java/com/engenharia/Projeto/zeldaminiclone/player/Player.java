@@ -35,7 +35,6 @@ public class Player {
     private boolean dying = false;
     private long deathTime = 0;
     private final int DEATH_DELAY = 2000;
-    private Sound coinSound = new Sound("/sounds/coin.wav");
     private Sound gameOver = new Sound("/sounds/game_over.wav");
 
     public Player(int x, int y) {
@@ -43,17 +42,12 @@ public class Player {
         this.y = y;
         loadSprites();
         healthBar.setLife(life);
-        coinSound.setVolume(0.5f);
-        walkingSound.setVolume(0.5f);
         gameOver.setVolume(0.1f);
     }
 
     public void addCoin(int amount) {
         inventory.addCoins(amount);
-
-        coinSound.play();
-
-
+        new Sound("/sounds/coin.wav").play();
     }
 
     public Inventory getInventory() {

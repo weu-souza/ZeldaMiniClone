@@ -4,6 +4,7 @@ import com.engenharia.Projeto.zeldaminiclone.player.Camera;
 import com.engenharia.Projeto.zeldaminiclone.player.HealthBar;
 import com.engenharia.Projeto.zeldaminiclone.player.Player;
 import com.engenharia.Projeto.zeldaminiclone.player.SpriteSheet;
+import com.engenharia.Projeto.zeldaminiclone.world.Sound;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -11,7 +12,10 @@ import java.awt.image.BufferedImage;
 import static com.engenharia.Projeto.zeldaminiclone.player.SpriteSheet.resize;
 
 public class Enemies {
-    public int x, y, width, height, speed;
+    public int x, y;
+    public final int startX;
+    public final int startY;
+    public int width, height, speed;
     private BufferedImage[][] sprites;
     public int maxLife = 3; // Máximo de vida do player
     public int life = maxLife;
@@ -26,11 +30,18 @@ public class Enemies {
     private int attackFrameDelay = 0;
     public boolean attackHitRegistered = false;
     private long lastAttackTime = 0;    // hora do último ataque em milissegundos
-    private final long attackCooldown = 500;  // 2000ms = 2 segundos
+    private final long attackCooldown = 500;
+    private final Sound walkingSound = new Sound("/sounds/walking.wav");
+    private boolean walkingSoundPlaying = false;
+    private final Sound attackSound = new Sound("/sounds/sword-sound.wav");
+    private boolean attackSoundPlayed = false;
+
 
     public Enemies(int x, int y) {
         this.x = x;
         this.y = y;
+        startX = x;
+        startY = y;
         this.width = 16;
         this.height = 16;
         this.speed = 1;
@@ -77,16 +88,35 @@ public class Enemies {
         sprites[3][1] = sheet.getSprite(48, 0, 16, 16);
     }
 
-    public boolean isAttacking() {
-        return this.isAttacking; // Implementar lógica de ataque se necessário
-    }
-
     public void startAttack() {
         if (!isAttacking) {
             isAttacking = true;
             attackFrame = 0;
             attackFrameDelay = 0;
             attackHitRegistered = false;
+            playAttackSound();
+            stopWalkingSound();
+        }
+    }
+
+    private void playWalkingSound() {
+        if (!walkingSoundPlaying) {
+            walkingSound.loop();
+            walkingSoundPlaying = true;
+        }
+    }
+
+    private void stopWalkingSound() {
+        if (walkingSoundPlaying) {
+            walkingSound.stop();
+            walkingSoundPlaying = false;
+        }
+    }
+
+    private void playAttackSound() {
+        if (!attackSoundPlayed) {
+            attackSound.play();
+            attackSoundPlayed = true;
         }
     }
 
@@ -107,6 +137,80 @@ public class Enemies {
         return new Rectangle(x, y, 16, 16);
     }
 
+    private void moveToPlayerWithLogic(int dx, int dy, double distance, Player player, long currentTime) {
+        double stopDistance = 16;
+
+        if (distance > stopDistance) {
+            double moveX = 0, moveY = 0;
+            playWalkingSound();
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0) {
+                    moveX = speed;
+                    currentDirection = 1;
+                } else {
+                    moveX = -speed;
+                    currentDirection = 3;
+                }
+            } else {
+                if (dy > 0) {
+                    moveY = speed;
+                    currentDirection = 0;
+                } else {
+                    moveY = -speed;
+                    currentDirection = 2;
+                }
+            }
+
+            double newDx = player.x - (this.x + moveX);
+            double newDy = player.y - (this.y + moveY);
+            double newDistance = Math.sqrt(newDx * newDx + newDy * newDy);
+
+            if (newDistance >= stopDistance) {
+                this.x += moveX;
+                this.y += moveY;
+            }
+        } else {
+            stopWalkingSound();
+        }
+
+        if (distance <= stopDistance && currentTime - lastAttackTime >= attackCooldown) {
+            startAttack();
+            lastAttackTime = currentTime;
+        }
+    }
+
+    private void moveBackToStart() {
+        int dx = startX - this.x;
+        int dy = startY - this.y;
+
+        if (dx == 0 && dy == 0) {
+            stopWalkingSound();
+            return;
+        }
+
+        playWalkingSound();
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+            if (dx > 0) {
+                this.x += speed;
+                currentDirection = 1;
+            } else {
+                this.x -= speed;
+                currentDirection = 3;
+            }
+        } else {
+            if (dy > 0) {
+                this.y += speed;
+                currentDirection = 0;
+            } else {
+                this.y -= speed;
+                currentDirection = 2;
+            }
+        }
+    }
+
+
     public void tick(Player player) {
         if (isDead()) return;
 
@@ -123,49 +227,17 @@ public class Enemies {
         long currentTime = System.currentTimeMillis();
 
         int attackRange = 16; // distância para atacar
+        int chaseRange = 48;
 
-        if (distance <= 48 && !isAttacking) {
-            double stopDistance = attackRange;
-
-            if (distance > stopDistance) {
-                double moveX = 0, moveY = 0;
-
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    if (dx > 0) {
-                        moveX = speed;
-                        currentDirection = 1;
-                    } else {
-                        moveX = -speed;
-                        currentDirection = 3;
-                    }
-                } else {
-                    if (dy > 0) {
-                        moveY = speed;
-                        currentDirection = 0;
-                    } else {
-                        moveY = -speed;
-                        currentDirection = 2;
-                    }
-                }
-
-                double newDx = player.x - (this.x + moveX);
-                double newDy = player.y - (this.y + moveY);
-                double newDistance = Math.sqrt(newDx * newDx + newDy * newDy);
-
-                if (newDistance >= stopDistance) {
-                    this.x += moveX;
-                    this.y += moveY;
-                }
-                // se novo local ultrapassa a distância, para de andar (fica ao lado)
-            }
-
-            if (distance <= stopDistance) {
-                if (currentTime - lastAttackTime >= attackCooldown) {
-                    startAttack();
-                    lastAttackTime = currentTime;
-                }
-            }
+// Player dentro do alcance
+        if (distance <= chaseRange && !isAttacking) {
+            moveToPlayerWithLogic(dx, dy, distance, player, currentTime);
         }
+// Player longe, volta pra posição inicial
+        else if (!isAttacking) {
+            moveBackToStart();
+        }
+
 
         if (isAttacking) {
             attackFrameDelay++;
@@ -184,8 +256,10 @@ public class Enemies {
                 if (attackFrame >= attackSprites.length) {
                     attackFrame = 0;
                     isAttacking = false;
+                    attackSoundPlayed = false;
                 }
             }
+
         }
     }
 
@@ -201,7 +275,7 @@ public class Enemies {
         g.drawImage(currentSprite, drawX, drawY, null);
 
         // Barra de vida
-        healthBar.render(g, x, y,true);
+        healthBar.render(g, x, y, true);
 
         // Se estiver atacando, desenha o slash
         if (isAttacking) {
