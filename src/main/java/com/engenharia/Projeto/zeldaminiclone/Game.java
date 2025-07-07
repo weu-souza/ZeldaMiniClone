@@ -8,6 +8,7 @@ import com.engenharia.Projeto.zeldaminiclone.quest.Npc;
 import com.engenharia.Projeto.zeldaminiclone.player.Camera;
 import com.engenharia.Projeto.zeldaminiclone.player.HealthBar;
 import com.engenharia.Projeto.zeldaminiclone.player.Player;
+import com.engenharia.Projeto.zeldaminiclone.utils.TelaFinalizacao;
 import com.engenharia.Projeto.zeldaminiclone.world.Portal;
 import com.engenharia.Projeto.zeldaminiclone.world.Sound;
 import com.engenharia.Projeto.zeldaminiclone.world.World;
@@ -44,7 +45,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
     CoinQuest coinQuest;
     private boolean jogoFinalizado = false;
     public static boolean portalSoundPlayed = false;
-    private Sound portalSound = new Sound("/sounds/portal.wav");
+    public Sound portalSound = new Sound("/sounds/portal.wav");
     private Sound bgAUdio = new Sound("/sounds/background-sound.wav");
 
 
@@ -97,7 +98,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
         portalSoundPlayed = false;
         portalSound.stop();
         player.audioStop();
-        World.clearWorld(); // limpa tudo com o mapa já atualizado
+        World.clearWorld();
 
         // carrega o novo mapa, que precisa popular blocos novamente
         switch (currentMap) {
@@ -108,7 +109,11 @@ public class Game extends Canvas implements Runnable, KeyListener {
                 world = new World("maps/map_3.png");
                 break;
             case 4:
-                world = new World("maps/map_4.png");
+                jogoFinalizado = true;
+                portalSound.stop();
+                player.audioStop();
+                bgAUdio.stop();
+                TelaFinalizacao.mostrarTelaFinal();
                 break;
         }
     }
@@ -174,11 +179,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
                 trocarMapa();
             }
         }
-        if (currentMap == 4 && !jogoFinalizado) {
-            jogoFinalizado = true;
-            JOptionPane.showMessageDialog(null, "Parabéns! Jogo finalizado!");
-            System.exit(0);
-        }
+
 
         for (Collectables c : coin) {
             c.tick();
