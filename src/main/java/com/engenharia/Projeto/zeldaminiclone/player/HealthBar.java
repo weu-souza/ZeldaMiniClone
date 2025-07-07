@@ -12,7 +12,7 @@ import static com.engenharia.Projeto.zeldaminiclone.player.SpriteSheet.resize;
 
 public class HealthBar {
     private BufferedImage heart;
-    private int maxHearts = 5;
+    private int maxHearts = 10;
     private int currentLife;
 
     public HealthBar() {

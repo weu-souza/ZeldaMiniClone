@@ -1,12 +1,12 @@
 package com.engenharia.Projeto.zeldaminiclone;
 
 import com.engenharia.Projeto.zeldaminiclone.colectables.Collectables;
-import com.engenharia.Projeto.zeldaminiclone.colectables.Inventory;
 import com.engenharia.Projeto.zeldaminiclone.creatures.Enemies;
+import com.engenharia.Projeto.zeldaminiclone.creatures.boss.Boss;
+import com.engenharia.Projeto.zeldaminiclone.creatures.boss.BossAttack;
 import com.engenharia.Projeto.zeldaminiclone.quest.CoinQuest;
 import com.engenharia.Projeto.zeldaminiclone.quest.Npc;
 import com.engenharia.Projeto.zeldaminiclone.player.Camera;
-import com.engenharia.Projeto.zeldaminiclone.player.HealthBar;
 import com.engenharia.Projeto.zeldaminiclone.player.Player;
 import com.engenharia.Projeto.zeldaminiclone.utils.TelaFinalizacao;
 import com.engenharia.Projeto.zeldaminiclone.world.Portal;
@@ -32,7 +32,6 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public static final int SCALE = 3;
     private Thread thread;
     private boolean isRunning = true;
-    private Camera camera;
     private World world;
     public static Portal portal;
     public static Player player;
@@ -43,11 +42,12 @@ public class Game extends Canvas implements Runnable, KeyListener {
     public static int currentMap = 1;
     boolean ePressed = false; /* detectar se E foi pressionado */
     CoinQuest coinQuest;
-    private boolean jogoFinalizado = false;
+    public static boolean jogoFinalizado = false;
     public static boolean portalSoundPlayed = false;
     public Sound portalSound = new Sound("/sounds/portal.wav");
     private Sound bgAUdio = new Sound("/sounds/background-sound.wav");
-
+    public static List<BossAttack> projectiles = new ArrayList<>();
+    public static Boss boss;
 
     public Game() {
         setPreferredSize(new java.awt.Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -94,13 +94,16 @@ public class Game extends Canvas implements Runnable, KeyListener {
             case 3:
                 currentMap = 4;
                 break;
+            case 4:
+                currentMap = 5;
+                break;
         }
+
         portalSoundPlayed = false;
         portalSound.stop();
         player.audioStop();
         World.clearWorld();
 
-        // carrega o novo mapa, que precisa popular blocos novamente
         switch (currentMap) {
             case 2:
                 world = new World("maps/map_2.png");
@@ -109,14 +112,28 @@ public class Game extends Canvas implements Runnable, KeyListener {
                 world = new World("maps/map_3.png");
                 break;
             case 4:
-                jogoFinalizado = true;
-                portalSound.stop();
-                player.audioStop();
+                world = new World("maps/map_4.png");
+
+                // Troca a música de fundo pro tema do boss
                 bgAUdio.stop();
-                TelaFinalizacao.mostrarTelaFinal();
+                bgAUdio = new Sound("/sounds/gwyn.wav");
+                bgAUdio.setVolume(0.05f);
+                bgAUdio.loop();
+                break;
+
+            case 5:
+                if (jogoFinalizado) {
+                    // Finaliza geral
+                    portalSound.stop();
+                    player.audioStop();
+                    bgAUdio.stop();
+                    TelaFinalizacao.mostrarTelaFinal();
+                    System.exit(0); // fecha o jogo completamente (opcional)
+                }
                 break;
         }
     }
+
 
     public synchronized void stop() {
         isRunning = false;
@@ -129,7 +146,12 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     private void gameTick() {
         player.tick();
-
+        if (boss != null) {
+            boss.tick();
+        }
+        for (int i = 0; i < projectiles.size(); i++) {
+            projectiles.get(i).tick();
+        }
         for (Enemies enemy : enemies) {
             enemy.tick(player);
         }
@@ -203,6 +225,12 @@ public class Game extends Canvas implements Runnable, KeyListener {
                 if (playerAttack.intersects(enemyBounds)) {
                     enemy.takeDamage(1);
                     player.attackHitRegistered = true;
+
+                    // Detecta se o inimigo é o Boss real
+                    if (enemy instanceof Boss) {
+                        System.out.println("Boss atingido! Vida restante: " + ((Boss) enemy).life);
+                    }
+
                     break;
                 }
             }
@@ -232,6 +260,12 @@ public class Game extends Canvas implements Runnable, KeyListener {
     private void renderElements(Graphics g) {
         world.render(g);
         player.render(g);
+        if (boss != null) {
+            boss.render(g);
+        }
+        for (int i = 0; i < projectiles.size(); i++) {
+            projectiles.get(i).render(g);
+        }
         if (Game.npc != null) {
             Game.npc.render(g);
         }

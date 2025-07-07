@@ -36,6 +36,8 @@ public class Player {
     private long deathTime = 0;
     private final int DEATH_DELAY = 2000;
     private Sound gameOver = new Sound("/sounds/game_over.wav");
+    private boolean invulnerable = false;
+    private int invulnerableTime = 0;
 
     public Player(int x, int y) {
         this.x = x;
@@ -55,9 +57,26 @@ public class Player {
     }
 
     public void takeDamage(int amount) {
+        if (invulnerable || dying) return;
+
         life -= amount;
         if (life < 0) life = 0;
+
         healthBar.setLife(life);
+        invulnerable = true;
+        invulnerableTime = 60;
+
+        new Sound("/sounds/hurt.wav").play();
+    }
+
+
+    public void vunerable() {
+        if (invulnerable) {
+            invulnerableTime--;
+            if (invulnerableTime <= 0) {
+                invulnerable = false;
+            }
+        }
     }
 
     public void heal(int amount) {
@@ -241,7 +260,7 @@ public class Player {
         // Animação de ataque
         atackAnimation();
         playerDeath();
-
+        vunerable();
         Camera.x = Camera.clamp(x - (Game.WIDTH / 2), 0, (World.WIDTH * 16) - Game.WIDTH);
         Camera.y = Camera.clamp(y - (Game.HEIGHT / 2), 0, (World.HEIGHT * 16) - Game.HEIGHT);
     }
