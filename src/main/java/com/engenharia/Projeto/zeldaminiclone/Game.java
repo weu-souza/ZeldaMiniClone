@@ -94,9 +94,6 @@ public class Game extends Canvas implements Runnable, KeyListener {
             case 3:
                 currentMap = 4;
                 break;
-            case 4:
-                currentMap = 5;
-                break;
         }
 
         portalSoundPlayed = false;
@@ -120,17 +117,6 @@ public class Game extends Canvas implements Runnable, KeyListener {
                 bgAUdio.setVolume(0.05f);
                 bgAUdio.loop();
                 break;
-
-            case 5:
-                if (jogoFinalizado) {
-                    // Finaliza geral
-                    portalSound.stop();
-                    player.audioStop();
-                    bgAUdio.stop();
-                    TelaFinalizacao.mostrarTelaFinal();
-                    System.exit(0); // fecha o jogo completamente (opcional)
-                }
-                break;
         }
     }
 
@@ -146,9 +132,21 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
     private void gameTick() {
         player.tick();
+
         if (boss != null) {
             boss.tick();
+
+            // Finaliza o jogo quando o boss morrer
+            if (boss.isDead()) {
+
+                portalSound.stop();
+                player.audioStop();
+                bgAUdio.stop();
+                TelaFinalizacao.mostrarTelaFinal();
+//                System.exit(0);
+            }
         }
+
         for (int i = 0; i < projectiles.size(); i++) {
             projectiles.get(i).tick();
         }
@@ -157,7 +155,6 @@ public class Game extends Canvas implements Runnable, KeyListener {
         }
         if (npc != null) {
             npc.tick(player, enemies.size(), ePressed);
-            ;
         }
     }
 
@@ -228,7 +225,7 @@ public class Game extends Canvas implements Runnable, KeyListener {
 
                     // Detecta se o inimigo é o Boss real
                     if (enemy instanceof Boss) {
-                        System.out.println("Boss atingido! Vida restante: " + ((Boss) enemy).life);
+//                        System.out.println("Boss atingido! Vida restante: " + ((Boss) enemy).life);
                     }
 
                     break;

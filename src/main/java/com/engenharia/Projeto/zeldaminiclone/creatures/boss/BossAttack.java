@@ -43,6 +43,12 @@ public class BossAttack {
         if (colideComPlayer()) {
             Game.player.takeDamage(1);
             Game.projectiles.remove(this);
+            return;
+        }
+
+        if (colideComParede()) {
+            Game.projectiles.remove(this);
+            return;
         }
 
         if (x < 0 || x > World.WIDTH * 16 || y < 0 || y > World.HEIGHT * 16) {
@@ -50,7 +56,10 @@ public class BossAttack {
         }
     }
 
+
+
     public void render(Graphics g) {
+        if(Game.boss.isDead()) return;
         Graphics2D g2d = (Graphics2D) g;
 
         double angle = Math.atan2(dy, dx);
@@ -63,9 +72,19 @@ public class BossAttack {
         g2d.rotate(-angle, drawX + width / 2, drawY + height / 2);
     }
 
+    private boolean colideComParede() {
+        Rectangle proj = new Rectangle((int) x, (int) y, width, height);
+        for (var bloco : World.blocks) {
+            if (bloco.type == 0 && proj.intersects(bloco)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean colideComPlayer() {
         Rectangle proj = new Rectangle((int) x, (int) y, width, height);
-        Rectangle player = new Rectangle(Game.player.x, Game.player.y, 16, 16); // ajuste se player tiver hitbox diferente
+        Rectangle player = new Rectangle(Game.player.x, Game.player.y, 16, 16);
         return proj.intersects(player);
     }
 }
