@@ -212,7 +212,10 @@ public class Enemies {
 
 
     public void tick(Player player) {
-        if (isDead()) return;
+        if (isDead()){
+            stopWalkingSound();
+            return;
+        }
 
         animationCount++;
         if (animationCount > animationDelay) {
